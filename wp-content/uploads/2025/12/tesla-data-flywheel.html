@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tesla: The Data Flywheel in Action</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.10.3/Recharts.min.js"></script>
+  <script src="https://cdn.tailwindcss.com/"></script>
+  <style>* { box-sizing: border-box; }
+    body { margin: 0; padding: 0; }</style>
+</head>
+<body>
+  <div id="root"></div>
+  <script>const { useState } = React;
+    const { AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart, ReferenceLine } = Recharts;
+
+    const TeslaDataFlywheel = () => {
+      const financialData = [
+        { year: '2012', revenue: 0.41, netIncome: -0.40, deliveries: 2.65, cumulativeDeliveries: 2.65 },
+        { year: '2013', revenue: 2.01, netIncome: -0.04, deliveries: 22.48, cumulativeDeliveries: 25.13 },
+        { year: '2014', revenue: 3.20, netIncome: -0.29, deliveries: 31.66, cumulativeDeliveries: 56.79 },
+        { year: '2015', revenue: 4.05, netIncome: -0.89, deliveries: 50.58, cumulativeDeliveries: 107.37 },
+        { year: '2016', revenue: 7.00, netIncome: -0.67, deliveries: 76.23, cumulativeDeliveries: 183.60 },
+        { year: '2017', revenue: 11.76, netIncome: -1.96, deliveries: 103.02, cumulativeDeliveries: 286.62 },
+        { year: '2018', revenue: 21.46, netIncome: -0.98, deliveries: 245.24, cumulativeDeliveries: 531.86 },
+        { year: '2019', revenue: 24.58, netIncome: -0.86, deliveries: 367.50, cumulativeDeliveries: 899.36 },
+        { year: '2020', revenue: 31.54, netIncome: 0.72, deliveries: 499.55, cumulativeDeliveries: 1398.91 },
+        { year: '2021', revenue: 53.82, netIncome: 5.52, deliveries: 936.17, cumulativeDeliveries: 2335.08 },
+        { year: '2022', revenue: 81.46, netIncome: 12.58, deliveries: 1313.85, cumulativeDeliveries: 3648.93 },
+        { year: '2023', revenue: 96.77, netIncome: 15.00, deliveries: 1808.58, cumulativeDeliveries: 5457.51 },
+        { year: '2024', revenue: 97.69, netIncome: 7.13, deliveries: 1789.23, cumulativeDeliveries: 7246.74 },
+      ];
+
+      const fsdMilesData = [
+        { year: '2020', miles: 0 },
+        { year: '2021', miles: 0.05 },
+        { year: '2022', miles: 0.15 },
+        { year: '2023 Q1', miles: 0.15 },
+        { year: '2024 Q1', miles: 1.0 },
+        { year: '2024 Q2', miles: 1.3 },
+        { year: '2024 Q3', miles: 1.6 },
+        { year: '2024 Q4', miles: 2.0 },
+        { year: '2025 Q1', miles: 3.6 },
+        { year: '2025 Q4', miles: 6.9 },
+      ];
+
+      const milestones = [
+        { year: 2008, event: 'Roadster Launch', type: 'product' },
+        { year: 2012, event: 'Model S Launch', type: 'product' },
+        { year: 2014, event: 'Autopilot HW1', type: 'autonomy' },
+        { year: 2016, event: 'Autopilot HW2', type: 'autonomy' },
+        { year: 2017, event: 'Model 3 Launch', type: 'product' },
+        { year: 2019, event: 'Autopilot HW3', type: 'autonomy' },
+        { year: 2020, event: 'First Profit + FSD Beta', type: 'milestone' },
+        { year: 2023, event: 'FSD v12 (E2E Neural Net)', type: 'autonomy' },
+        { year: 2024, event: '1B+ FSD Miles', type: 'data' },
+      ];
+
+      const CustomTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+          return React.createElement('div', {
+            className: 'bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 shadow-xl',
+            style: { backgroundColor: 'rgba(17, 24, 39, 0.95)' }
+          }, [
+            React.createElement('p', { key: 'label', className: 'text-gray-400 text-sm font-medium mb-2' }, label),
+            ...payload.map((entry, index) => 
+              React.createElement('p', { key: index, className: 'text-sm', style: { color: entry.color } },
+                `${entry.name}: ${typeof entry.value === 'number' ? 
+                  (entry.name.includes('Miles') ? `${entry.value.toFixed(2)}B` :
+                   entry.name.includes('Deliveries') ? `${entry.value.toFixed(0)}K` :
+                   `$${entry.value.toFixed(2)}B`) : entry.value}`
+              )
+            )
+          ]);
+        }
+        return null;
+      };
+
+      return React.createElement('div', { className: 'min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 p-6' },
+        React.createElement('div', { className: 'max-w-6xl mx-auto' }, [
+          
+          // Header
+          React.createElement('div', { key: 'header', className: 'mb-6 text-center' },
+            React.createElement('h1', { className: 'text-3xl font-bold text-white mb-2' }, 'Tesla: The Data Flywheel in Action')
+          ),
+
+          // Stats Row
+          React.createElement('div', { key: 'stats', className: 'grid grid-cols-4 gap-3 mb-6' }, [
+            React.createElement('div', { key: 's1', className: 'bg-gray-800/40 rounded-xl p-4 border border-gray-700/50 text-center' }, [
+              React.createElement('p', { key: 't1', className: 'text-gray-400 text-xs mb-1' }, '2024 Revenue'),
+              React.createElement('p', { key: 'v1', className: 'text-2xl font-bold text-white' }, '$97.7B'),
+              React.createElement('p', { key: 's1', className: 'text-gray-500 text-xs' }, '+6,600x since 2008')
+            ]),
+            React.createElement('div', { key: 's2', className: 'bg-gray-800/40 rounded-xl p-4 border border-gray-700/50 text-center' }, [
+              React.createElement('p', { key: 't2', className: 'text-gray-400 text-xs mb-1' }, 'Cumulative Fleet'),
+              React.createElement('p', { key: 'v2', className: 'text-2xl font-bold text-white' }, '7.2M+'),
+              React.createElement('p', { key: 's2', className: 'text-gray-500 text-xs' }, 'vehicles on road')
+            ]),
+            React.createElement('div', { key: 's3', className: 'bg-gray-800/40 rounded-xl p-4 border border-gray-700/50 text-center' }, [
+              React.createElement('p', { key: 't3', className: 'text-gray-400 text-xs mb-1' }, 'FSD Miles (Dec 2025)'),
+              React.createElement('p', { key: 'v3', className: 'text-2xl font-bold text-emerald-400' }, '6.9B'),
+              React.createElement('p', { key: 's3', className: 'text-gray-500 text-xs' }, 'real-world training data')
+            ]),
+            React.createElement('div', { key: 's4', className: 'bg-gray-800/40 rounded-xl p-4 border border-gray-700/50 text-center' }, [
+              React.createElement('p', { key: 't4', className: 'text-gray-400 text-xs mb-1' }, 'Years to Profit'),
+              React.createElement('p', { key: 'v4', className: 'text-2xl font-bold text-amber-400' }, '12'),
+              React.createElement('p', { key: 's4', className: 'text-gray-500 text-xs' }, '2008 → 2020')
+            ])
+          ]),
+
+          // Main Charts Grid
+          React.createElement('div', { key: 'charts', className: 'grid grid-cols-2 gap-4 mb-6' }, [
+            // Revenue & Net Income
+            React.createElement('div', { key: 'revenue', className: 'bg-gray-800/30 rounded-xl p-4 border border-gray-700/50' }, [
+              React.createElement('h3', { key: 'h', className: 'text-white font-semibold mb-1 text-sm' }, 'Revenue & Net Income'),
+              React.createElement('p', { key: 'p', className: 'text-gray-500 text-xs mb-3' }, 'Annual figures in billions USD'),
+              React.createElement(ResponsiveContainer, { key: 'chart', width: '100%', height: 200 },
+                React.createElement(ComposedChart, { data: financialData, margin: { top: 10, right: 10, left: -10, bottom: 0 } }, [
+                  React.createElement('defs', { key: 'defs' },
+                    React.createElement('linearGradient', { id: 'revenueGrad', x1: '0', y1: '0', x2: '0', y2: '1' }, [
+                      React.createElement('stop', { key: 'stop1', offset: '0%', stopColor: '#3b82f6', stopOpacity: 0.4 }),
+                      React.createElement('stop', { key: 'stop2', offset: '100%', stopColor: '#3b82f6', stopOpacity: 0 })
+                    ])
+                  ),
+                  React.createElement(CartesianGrid, { key: 'grid', strokeDasharray: '3 3', stroke: '#374151', vertical: false }),
+                  React.createElement(XAxis, { key: 'x', dataKey: 'year', tick: { fill: '#9CA3AF', fontSize: 10 }, axisLine: false, tickLine: false }),
+                  React.createElement(YAxis, { key: 'y', tick: { fill: '#9CA3AF', fontSize: 10 }, axisLine: false, tickLine: false, tickFormatter: (v) => `$${v}B` }),
+                  React.createElement(Tooltip, { key: 'tooltip', content: React.createElement(CustomTooltip) }),
+                  React.createElement(ReferenceLine, { key: 'ref', y: 0, stroke: '#4b5563', strokeDasharray: '3 3' }),
+                  React.createElement(Area, { key: 'area', type: 'monotone', dataKey: 'revenue', name: 'Revenue', stroke: '#3b82f6', fill: 'url(#revenueGrad)', strokeWidth: 2 }),
+                  React.createElement(Line, { key: 'line', type: 'monotone', dataKey: 'netIncome', name: 'Net Income', stroke: '#22c55e', strokeWidth: 2, dot: { r: 3, fill: '#22c55e' } })
+                ])
+              ),
+              React.createElement('div', { key: 'legend', className: 'flex justify-center gap-6 mt-2 text-xs' }, [
+                React.createElement('span', { key: 'l1', className: 'flex items-center gap-1.5' }, [
+                  React.createElement('span', { key: 'd1', className: 'w-3 h-0.5 bg-blue-500 rounded' }),
+                  React.createElement('span', { key: 't1', className: 'text-gray-400' }, 'Revenue')
+                ]),
+                React.createElement('span', { key: 'l2', className: 'flex items-center gap-1.5' }, [
+                  React.createElement('span', { key: 'd2', className: 'w-3 h-0.5 bg-green-500 rounded' }),
+                  React.createElement('span', { key: 't2', className: 'text-gray-400' }, 'Net Income')
+                ])
+              ])
+            ]),
+
+            // Fleet Growth
+            React.createElement('div', { key: 'fleet', className: 'bg-gray-800/30 rounded-xl p-4 border border-gray-700/50' }, [
+              React.createElement('h3', { key: 'h', className: 'text-white font-semibold mb-1 text-sm' }, 'Cumulative Fleet Size'),
+              React.createElement('p', { key: 'p', className: 'text-gray-500 text-xs mb-3' }, 'Total vehicles delivered (thousands)'),
+              React.createElement(ResponsiveContainer, { key: 'chart', width: '100%', height: 200 },
+                React.createElement(AreaChart, { data: financialData, margin: { top: 10, right: 10, left: -10, bottom: 0 } }, [
+                  React.createElement('defs', { key: 'defs' },
+                    React.createElement('linearGradient', { id: 'fleetGrad', x1: '0', y1: '0', x2: '0', y2: '1' }, [
+                      React.createElement('stop', { key: 'stop1', offset: '0%', stopColor: '#f59e0b', stopOpacity: 0.5 }),
+                      React.createElement('stop', { key: 'stop2', offset: '100%', stopColor: '#f59e0b', stopOpacity: 0 })
+                    ])
+                  ),
+                  React.createElement(CartesianGrid, { key: 'grid', strokeDasharray: '3 3', stroke: '#374151', vertical: false }),
+                  React.createElement(XAxis, { key: 'x', dataKey: 'year', tick: { fill: '#9CA3AF', fontSize: 10 }, axisLine: false, tickLine: false }),
+                  React.createElement(YAxis, { key: 'y', tick: { fill: '#9CA3AF', fontSize: 10 }, axisLine: false, tickLine: false, tickFormatter: (v) => `${(v/1000).toFixed(1)}M` }),
+                  React.createElement(Tooltip, { key: 'tooltip', content: React.createElement(CustomTooltip) }),
+                  React.createElement(Area, { key: 'area', type: 'monotone', dataKey: 'cumulativeDeliveries', name: 'Cumulative Deliveries', stroke: '#f59e0b', fill: 'url(#fleetGrad)', strokeWidth: 2 })
+                ])
+              ),
+              React.createElement('div', { key: 'legend', className: 'flex justify-center gap-6 mt-2 text-xs' }, [
+                React.createElement('span', { key: 'l1', className: 'flex items-center gap-1.5' }, [
+                  React.createElement('span', { key: 'd1', className: 'w-3 h-0.5 bg-amber-500 rounded' }),
+                  React.createElement('span', { key: 't1', className: 'text-gray-400' }, 'Cumulative Deliveries')
+                ])
+              ])
+            ])
+          ]),
+
+          // FSD Miles Chart
+          React.createElement('div', { key: 'fsd', className: 'bg-gray-800/30 rounded-xl p-4 border border-gray-700/50 mb-6' }, [
+            React.createElement('div', { key: 'header', className: 'flex justify-between items-start mb-3' }, [
+              React.createElement('div', { key: 'left' }, [
+                React.createElement('h3', { key: 'h', className: 'text-white font-semibold text-sm' }, 'FSD Cumulative Miles'),
+                React.createElement('p', { key: 'p', className: 'text-gray-500 text-xs' }, 'Billions of miles driven with Full Self-Driving')
+              ]),
+              React.createElement('div', { key: 'right', className: 'text-right' }, [
+                React.createElement('p', { key: 'v', className: 'text-emerald-400 text-2xl font-bold' }, '6.9B'),
+                React.createElement('p', { key: 's', className: 'text-gray-500 text-xs' }, 'as of Dec 2025')
+              ])
+            ]),
+            React.createElement(ResponsiveContainer, { key: 'chart', width: '100%', height: 180 },
+              React.createElement(AreaChart, { data: fsdMilesData, margin: { top: 10, right: 30, left: 0, bottom: 0 } }, [
+                React.createElement('defs', { key: 'defs' },
+                  React.createElement('linearGradient', { id: 'fsdGrad', x1: '0', y1: '0', x2: '0', y2: '1' }, [
+                    React.createElement('stop', { key: 'stop1', offset: '0%', stopColor: '#10b981', stopOpacity: 0.6 }),
+                    React.createElement('stop', { key: 'stop2', offset: '100%', stopColor: '#10b981', stopOpacity: 0 })
+                  ])
+                ),
+                React.createElement(CartesianGrid, { key: 'grid', strokeDasharray: '3 3', stroke: '#374151', vertical: false }),
+                React.createElement(XAxis, { key: 'x', dataKey: 'year', tick: { fill: '#9CA3AF', fontSize: 10 }, axisLine: false, tickLine: false }),
+                React.createElement(YAxis, { key: 'y', tick: { fill: '#9CA3AF', fontSize: 10 }, axisLine: false, tickLine: false, tickFormatter: (v) => `${v}B`, domain: [0, 8] }),
+                React.createElement(Tooltip, { key: 'tooltip', content: React.createElement(CustomTooltip) }),
+                React.createElement(Area, { key: 'area', type: 'monotone', dataKey: 'miles', name: 'FSD Miles', stroke: '#10b981', fill: 'url(#fsdGrad)', strokeWidth: 3, dot: { r: 4, fill: '#10b981' } })
+              ])
+            ),
+            React.createElement('div', { key: 'legend', className: 'flex justify-center gap-6 mt-2 text-xs' }, [
+              React.createElement('span', { key: 'l1', className: 'flex items-center gap-1.5' }, [
+                React.createElement('span', { key: 'd1', className: 'w-3 h-0.5 bg-emerald-500 rounded' }),
+                React.createElement('span', { key: 't1', className: 'text-gray-400' }, 'Cumulative FSD Miles')
+              ])
+            ])
+          ]),
+
+          // Timeline
+          React.createElement('div', { key: 'timeline', className: 'bg-gray-800/30 rounded-xl p-4 border border-gray-700/50 mb-6' }, [
+            React.createElement('h3', { key: 'h', className: 'text-white font-semibold mb-4 text-sm text-center' }, 'Tesla Timeline: 2008–2024'),
+            React.createElement('div', { key: 'track', className: 'relative' }, [
+              React.createElement('div', { key: 'line', className: 'absolute top-4 left-0 right-0 h-0.5 bg-gray-700' }),
+              React.createElement('div', { key: 'items', className: 'flex justify-between relative' },
+                milestones.map((m, i) =>
+                  React.createElement('div', { key: i, className: 'flex flex-col items-center', style: { width: '11%' } }, [
+                    React.createElement('div', { 
+                      key: 'dot', 
+                      className: `w-3 h-3 rounded-full z-10 ${
+                        m.type === 'autonomy' ? 'bg-emerald-500' : 
+                        m.type === 'milestone' ? 'bg-amber-500' : 
+                        m.type === 'data' ? 'bg-purple-500' : 'bg-blue-500'
+                      }`
+                    }),
+                    React.createElement('p', { key: 'year', className: 'text-gray-400 text-xs mt-2 font-medium' }, m.year),
+                    React.createElement('p', { key: 'event', className: 'text-gray-500 text-xs text-center mt-1 leading-tight', style: { fontSize: '9px' } }, m.event)
+                  ])
+                )
+              )
+            ]),
+            React.createElement('div', { key: 'legend', className: 'flex justify-center gap-6 mt-4 text-xs' }, [
+              React.createElement('span', { key: 'l1', className: 'flex items-center gap-1.5' }, [
+                React.createElement('span', { key: 'd1', className: 'w-2 h-2 rounded-full bg-blue-500' }),
+                React.createElement('span', { key: 't1', className: 'text-gray-400' }, 'Product')
+              ]),
+              React.createElement('span', { key: 'l2', className: 'flex items-center gap-1.5' }, [
+                React.createElement('span', { key: 'd2', className: 'w-2 h-2 rounded-full bg-emerald-500' }),
+                React.createElement('span', { key: 't2', className: 'text-gray-400' }, 'Autonomy')
+              ]),
+              React.createElement('span', { key: 'l3', className: 'flex items-center gap-1.5' }, [
+                React.createElement('span', { key: 'd3', className: 'w-2 h-2 rounded-full bg-amber-500' }),
+                React.createElement('span', { key: 't3', className: 'text-gray-400' }, 'Milestone')
+              ]),
+              React.createElement('span', { key: 'l4', className: 'flex items-center gap-1.5' }, [
+                React.createElement('span', { key: 'd4', className: 'w-2 h-2 rounded-full bg-purple-500' }),
+                React.createElement('span', { key: 't4', className: 'text-gray-400' }, 'Data Scale')
+              ])
+            ])
+          ]),
+
+          // Footer
+          React.createElement('div', { key: 'footer', className: 'text-center' },
+            React.createElement('p', { className: 'text-gray-600 text-xs' }, 'Data: Tesla SEC filings, Investor Reports, Tesla AI')
+          )
+        ])
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(React.createElement(TeslaDataFlywheel));</script>
+</body>
+</html>
